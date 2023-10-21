@@ -1,9 +1,14 @@
+USE_CAMERA=False
+
+
+
 import cv2
 import numpy as np
 from pathlib import Path
 from transformers import YolosImageProcessor, YolosForObjectDetection
 from PIL import Image
 import torch
+from collections import defaultdict
 
 from boxmot import BoTSORT
 import datetime
@@ -17,22 +22,28 @@ tracker = BoTSORT(
 model = YolosForObjectDetection.from_pretrained('hustvl/yolos-tiny').to('cuda')
 image_processor = YolosImageProcessor.from_pretrained("hustvl/yolos-tiny")
 
-vid = cv2.VideoCapture("sample1.mp4") # カメラを使うときは 0
+if USE_CAMERA:
+    vid = cv2.VideoCapture(0) 
+else:
+    vid = cv2.VideoCapture("sample1.mp4") # カメラを使うときは 0
 
+    fps = int(vid.get(cv2.CAP_PROP_FPS))
 
-fps = int(vid.get(cv2.CAP_PROP_FPS))
-
+    # ビデオで最初の数秒をスキップ
+    vid.set(cv2.CAP_PROP_POS_FRAMES, fps*3)
 
 st=set()
-# for i,frame_no in enumerate(range(fps*10,fps*60,3)):
+frame_no=0
 while True:
+    frame_no+=1
     # カメラからフレームを取得
-    # vid.set(cv2.CAP_PROP_POS_FRAMES, frame_no)
     ret, im = vid.read()
     if not ret:
         print("カメラから映像を取得できませんでした。")
         break
     image = Image.fromarray(im)
+    width=im.shape[1]
+
 
     inputs = image_processor(images=image, return_tensors="pt").to('cuda')
     # print(inputs)
@@ -69,19 +80,28 @@ while True:
     # substitute by your object detector, output has to be N X (x, y, x, y, conf, cls)
     dets = np.array(dets)
     if(len(dets)==0):
+        print(f"0 human found on frame {frame_no}",end="\r")
         continue
-
 
 
     tracks = tracker.update(dets, im) # --> (x, y, x, y, id, conf, cls, ind)
     # print(tracks[:,4])
     if len(tracks.shape) == 1:
-        # print(tracks)
         continue
     
-    for t in tracks[:,4].tolist():
-        if t not in st:
-            st.add(int(t))
+    print(f"{len(tracks)} human found on frame {frame_no}",end="\r")
+
+    for x,y,x2,y2,id,conf,_,_ in tracks:
+        if id not in st:
+            st.add(id)
+
+            if x<width/3: #初めてのフレームINが左側
+                direction=">"
+            elif x>width*2/3: #右側
+                direction="<"
+            else:
+                direction="?"
+
             with open("log.txt", "a") as f:
-                f.write(f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')},{len(st)}\n")
+                f.write(f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')},{len(st)},{direction}\n")
                 
