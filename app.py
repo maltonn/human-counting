@@ -16,18 +16,18 @@ def static_css():
 def static_js():
     return send_from_directory('templates/', 'main.js')
 
-@app.route('/log')
+@app.route('/log/')
 def res_log():
     L=[]
     with open ('log.txt','r') as f:
-        time_str,id,direction=f.readline().split(',')
-        timestamp=datetime.datetime.strptime(time_str, "%d/%m/%Y").timestamp()
+        time_str,id,direction=f.readline().strip().split(',')
+        timestamp=datetime.datetime.strptime(time_str, '%Y-%m-%d %H:%M:%S').timestamp()
         L.append({
             'timestamp':timestamp,
             'direction':direction
         })
     
-    return ['a', 'b', 'c']
+    return jsonify(L)
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -12,10 +12,9 @@ async function Refresh() {
 }
 
 const table = {};
-
+Refresh();
 setInterval(async () => {
     const data = await Refresh();
-
     data.forEach(({ timestamp, direction }) => {
         const date = new Date(timestamp * 1000);
         const day = date.toLocaleDateString();
@@ -38,7 +37,8 @@ setInterval(async () => {
 
     
     console.table(table);
-}, 1000);
+}, 10000);
+
 const tableElement = document.createElement('table');
 const theadElement = document.createElement('thead');
 const tbodyElement = document.createElement('tbody');
