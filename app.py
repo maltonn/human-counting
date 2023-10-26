@@ -20,12 +20,13 @@ def static_js():
 def res_log():
     L=[]
     with open ('log.txt','r') as f:
-        time_str,id,direction=f.readline().strip().split(',')
-        timestamp=datetime.datetime.strptime(time_str, '%Y-%m-%d %H:%M:%S').timestamp()
-        L.append({
-            'timestamp':timestamp,
-            'direction':direction
-        })
+        while line:=f.readline():
+            time_str,id,direction=line.strip().split(',')
+            timestamp=datetime.datetime.strptime(time_str, '%Y-%m-%d %H:%M:%S').timestamp()
+            L.append({
+                'timestamp':timestamp,
+                'direction':direction
+            })
     
     return jsonify(L)
 

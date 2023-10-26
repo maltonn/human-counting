@@ -1,19 +1,17 @@
 
 
 async function Refresh() {
-    fetch('log/').then((response)=> {
+    return fetch('log/').then((response)=> {
         return response.json();
     }
     ).then((data)=> {
-        console.log(data);
         return data;
     }
     );
 }
 
-const table = {};
-Refresh();
 setInterval(async () => {
+    const table = {};
     const data = await Refresh();
     data.forEach(({ timestamp, direction }) => {
         const date = new Date(timestamp * 1000);
@@ -37,52 +35,58 @@ setInterval(async () => {
 
     
     console.table(table);
+    CreateTable(table)
 }, 10000);
 
-const tableElement = document.createElement('table');
-const theadElement = document.createElement('thead');
-const tbodyElement = document.createElement('tbody');
+function CreateTable(table) {
+    document.getElementById('main_table').outerHTML = '';
 
-// Create table header
-const headerRow = document.createElement('tr');
-const headerCell1 = document.createElement('th');
-headerCell1.textContent = 'Direction';
-const headerCell2 = document.createElement('th');
-headerCell2.textContent = 'Day';
-const headerCell3 = document.createElement('th');
-headerCell3.textContent = 'Hour';
-const headerCell4 = document.createElement('th');
-headerCell4.textContent = 'Count';
+    const tableElement = document.createElement('table');
+    tableElement.id='main_table'
+    const theadElement = document.createElement('thead');
+    const tbodyElement = document.createElement('tbody');
 
-headerRow.appendChild(headerCell1);
-headerRow.appendChild(headerCell2);
-headerRow.appendChild(headerCell3);
-headerRow.appendChild(headerCell4);
-theadElement.appendChild(headerRow);
+    // Create table header
+    const headerRow = document.createElement('tr');
+    const headerCell1 = document.createElement('th');
+    headerCell1.textContent = 'Direction';
+    const headerCell2 = document.createElement('th');
+    headerCell2.textContent = 'Day';
+    const headerCell3 = document.createElement('th');
+    headerCell3.textContent = 'Hour';
+    const headerCell4 = document.createElement('th');
+    headerCell4.textContent = 'Count';
 
-// Create table body
-for (const direction in table) {
-    for (const day in table[direction]) {
-        for (const hour in table[direction][day]) {
-            const row = document.createElement('tr');
-            const cell1 = document.createElement('td');
-            cell1.textContent = direction;
-            const cell2 = document.createElement('td');
-            cell2.textContent = day;
-            const cell3 = document.createElement('td');
-            cell3.textContent = hour;
-            const cell4 = document.createElement('td');
-            cell4.textContent = table[direction][day][hour];
+    headerRow.appendChild(headerCell1);
+    headerRow.appendChild(headerCell2);
+    headerRow.appendChild(headerCell3);
+    headerRow.appendChild(headerCell4);
+    theadElement.appendChild(headerRow);
 
-            row.appendChild(cell1);
-            row.appendChild(cell2);
-            row.appendChild(cell3);
-            row.appendChild(cell4);
-            tbodyElement.appendChild(row);
+    // Create table body
+    for (const direction in table) {
+        for (const day in table[direction]) {
+            for (const hour in table[direction][day]) {
+                const row = document.createElement('tr');
+                const cell1 = document.createElement('td');
+                cell1.textContent = direction;
+                const cell2 = document.createElement('td');
+                cell2.textContent = day;
+                const cell3 = document.createElement('td');
+                cell3.textContent = hour;
+                const cell4 = document.createElement('td');
+                cell4.textContent = table[direction][day][hour];
+
+                row.appendChild(cell1);
+                row.appendChild(cell2);
+                row.appendChild(cell3);
+                row.appendChild(cell4);
+                tbodyElement.appendChild(row);
+            }
         }
     }
-}
 
-tableElement.appendChild(theadElement);
-tableElement.appendChild(tbodyElement);
-document.body.appendChild(tableElement);
+    tableElement.appendChild(theadElement);
+    tableElement.appendChild(tbodyElement);
+    document.body.appendChild(tableElement);
+}
